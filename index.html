@@ -29,7 +29,6 @@
             gap: 30px;
             justify-content: center;
         }
-        /* ---------- FORM CARD ---------- */
         .form-card {
             flex: 1 1 420px;
             background: white;
@@ -164,7 +163,6 @@
         }
         .remove-item:hover { background: #b14141; }
 
-        /* ---------- PREVIEW CARD ---------- */
         .preview-card {
             flex: 1 1 520px;
             background: #f8fafc;
@@ -207,10 +205,8 @@
             line-height: 1.5;
             width: 100%;
             padding: 20px 24px;
-            /* A5 aspect ratio ~ 1.414 : 1, we use flexible height */
             box-sizing: border-box;
         }
-        /* invoice styling – full bleed inside preview */
         .inv-store { font-weight: 700; font-size: 1.7rem; letter-spacing: -0.3px; color: #0f2b1f; }
         .inv-address { color: #2c4a3b; font-size: 0.95rem; }
         .inv-vat { font-size: 0.85rem; color: #3b5b49; }
@@ -232,15 +228,6 @@
         .inv-table th { text-align: left; border-bottom: 2px solid #1a3e2f; padding: 6px 4px; color: #17382a; font-weight: 600; }
         .inv-table td { padding: 5px 4px; border-bottom: 1px solid #e2e9ef; }
         .inv-table .amount-col { text-align: right; }
-        .inv-total-line {
-            display: flex;
-            justify-content: flex-end;
-            gap: 40px;
-            font-weight: 600;
-            border-top: 2px solid #1f3d31;
-            padding-top: 10px;
-            margin-top: 6px;
-        }
         .inv-cash {
             background: #ecf3ef;
             padding: 8px 14px;
@@ -291,13 +278,11 @@
             .form-grid { grid-template-columns: 1fr; }
             .item-row { flex-direction: column; }
         }
-        /* ensure PDF content uses full width */
         #invoice-preview * { box-sizing: border-box; }
     </style>
 </head>
 <body>
 <div class="app-wrapper">
-    <!-- FORM -->
     <div class="form-card">
         <h2><i class="fas fa-receipt"></i> Invoice details</h2>
         <div class="form-grid">
@@ -314,27 +299,29 @@
 
         <div style="margin: 18px 0 6px; font-weight: 600; color: #1f3d31;"><i class="fas fa-shopping-basket"></i> Items</div>
         <div id="itemsContainer">
+            <!-- First item - ALL FIELDS EMPTY -->
             <div class="item-row" data-index="0">
-                <div class="form-group mid"><label>Particulars</label><input class="item-particulars" value="MANGO (MALDA)"></div>
-                <div class="form-group small"><label>Qty</label><input class="item-qty" type="number" value="2.1" step="0.01"></div>
-                <div class="form-group small"><label>Rate</label><input class="item-rate" type="number" value="100" step="0.01"></div>
-                <div class="form-group small"><label>Amount</label><input class="item-amount" type="number" value="209.6" step="0.01" readonly style="background:#eef4f0;"></div>
+                <div class="form-group mid"><label>Particulars</label><input class="item-particulars" placeholder="Item description" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Qty</label><input class="item-qty" type="number" step="0.01" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Rate</label><input class="item-rate" type="number" step="0.01" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Amount</label><input class="item-amount" type="number" step="0.01" readonly style="background:#eef4f0;" value="0.00"></div>
                 <button class="remove-item" onclick="removeItem(this)"><i class="fas fa-trash-alt"></i></button>
             </div>
+            <!-- Second item - ALL FIELDS EMPTY -->
             <div class="item-row" data-index="1">
-                <div class="form-group mid"><label>Particulars</label><input class="item-particulars" value="BRITANNIA MARIE GOLD BISCUIT RS. 10"></div>
-                <div class="form-group small"><label>Qty</label><input class="item-qty" type="number" value="12" step="0.01"></div>
-                <div class="form-group small"><label>Rate</label><input class="item-rate" type="number" value="9.17" step="0.01"></div>
-                <div class="form-group small"><label>Amount</label><input class="item-amount" type="number" value="110" step="0.01" readonly style="background:#eef4f0;"></div>
+                <div class="form-group mid"><label>Particulars</label><input class="item-particulars" placeholder="Item description" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Qty</label><input class="item-qty" type="number" step="0.01" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Rate</label><input class="item-rate" type="number" step="0.01" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Amount</label><input class="item-amount" type="number" step="0.01" readonly style="background:#eef4f0;" value="0.00"></div>
                 <button class="remove-item" onclick="removeItem(this)"><i class="fas fa-trash-alt"></i></button>
             </div>
         </div>
         <button class="btn-icon outline" style="margin: 8px 0 12px;" onclick="addItem()"><i class="fas fa-plus-circle"></i> Add item</button>
 
         <div class="cash-row">
-            <div class="form-group"><label><i class="fas fa-hand-holding-usd"></i> Tender / Cash</label><input id="tenderCash" type="number" step="0.01" value="500"></div>
-            <div class="form-group"><label><i class="fas fa-coins"></i> Change</label><input id="changeCash" type="number" step="0.01" value="180.40" readonly style="background:#eef4f0;"></div>
-            <div class="badge-total"><i class="fas fa-calculator"></i> Net: <span id="netTotalDisplay">319.60</span></div>
+            <div class="form-group"><label><i class="fas fa-hand-holding-usd"></i> Tender / Cash</label><input id="tenderCash" type="number" step="0.01" value="0.00"></div>
+            <div class="form-group"><label><i class="fas fa-coins"></i> Change</label><input id="changeCash" type="number" step="0.01" value="0.00" readonly style="background:#eef4f0;"></div>
+            <div class="badge-total"><i class="fas fa-calculator"></i> Net: <span id="netTotalDisplay">0.00</span></div>
         </div>
 
         <div class="action-bar">
@@ -343,16 +330,13 @@
         </div>
     </div>
 
-    <!-- PREVIEW & DOWNLOAD -->
     <div class="preview-card">
         <div class="preview-header">
             <h2><i class="fas fa-file-pdf"></i> Invoice preview</h2>
             <span style="background:#dce9e0; padding:4px 16px; border-radius:40px; font-size:0.8rem; font-weight:500;">A5 · full bleed</span>
         </div>
         <div class="pdf-container" id="pdfContainer">
-            <div id="invoice-preview">
-                <!-- dynamic content -->
-            </div>
+            <div id="invoice-preview"></div>
         </div>
         <button class="download-btn" id="downloadPdfBtn"><i class="fas fa-cloud-download-alt"></i> Download PDF (A5)</button>
     </div>
@@ -360,9 +344,6 @@
 
 <script>
     (function() {
-        // helpers
-        function formatNumber(v) { return parseFloat(v) || 0; }
-
         function recalcItemAmount(row) {
             const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
             const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
@@ -373,7 +354,9 @@
 
         function computeTotal() {
             let total = 0;
-            document.querySelectorAll('.item-row').forEach(row => { total += recalcItemAmount(row); });
+            document.querySelectorAll('.item-row').forEach(row => {
+                total += recalcItemAmount(row);
+            });
             return total;
         }
 
@@ -385,18 +368,15 @@
             return net;
         }
 
-        // add / remove
         window.addItem = function() {
             const container = document.getElementById('itemsContainer');
-            const idx = container.children.length;
             const row = document.createElement('div');
             row.className = 'item-row';
-            row.dataset.index = idx;
             row.innerHTML = `
-                <div class="form-group mid"><label>Particulars</label><input class="item-particulars" value="Item ${idx+1}"></div>
-                <div class="form-group small"><label>Qty</label><input class="item-qty" type="number" value="1" step="0.01"></div>
-                <div class="form-group small"><label>Rate</label><input class="item-rate" type="number" value="0" step="0.01"></div>
-                <div class="form-group small"><label>Amount</label><input class="item-amount" type="number" value="0" step="0.01" readonly style="background:#eef4f0;"></div>
+                <div class="form-group mid"><label>Particulars</label><input class="item-particulars" placeholder="Item description" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Qty</label><input class="item-qty" type="number" step="0.01" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Rate</label><input class="item-rate" type="number" step="0.01" value="" autocomplete="off"></div>
+                <div class="form-group small"><label>Amount</label><input class="item-amount" type="number" step="0.01" readonly style="background:#eef4f0;" value="0.00"></div>
                 <button class="remove-item" onclick="removeItem(this)"><i class="fas fa-trash-alt"></i></button>
             `;
             container.appendChild(row);
@@ -431,7 +411,6 @@
             document.getElementById('paymentMode').addEventListener('change', updatePreview);
         }
 
-        // ---------- render preview ----------
         function updatePreview() {
             const net = updateNetAndChange();
             const billNo = document.getElementById('billNo').value || 'SI51942-CHR-82/83';
@@ -491,13 +470,12 @@
                 <div class="inv-amount-words"><i class="fas fa-pen-fancy"></i> Rs. ${words} only</div>
                 <div class="inv-footer">
                     <span>Counter : Chapagaun ( 2:59PM ) Retail Terminal 1</span>
-                    <span>Cashier : Chapagaun</span>
+                    <span>Cashier : chapagaun</span>
                 </div>
                 <div style="text-align:center; font-size:0.75rem; color:#4b6a5a; margin-top:10px;">Thank you for visiting us.</div>
             `;
         }
 
-        // number to words (simple)
         function numberToWords(n) {
             if (n === 0) return 'Zero';
             const num = Math.round(n * 100) / 100;
@@ -519,12 +497,10 @@
             return res.trim();
         }
 
-        // ---------- DOWNLOAD PDF (A5, full bleed) ----------
         document.getElementById('downloadPdfBtn').addEventListener('click', function() {
             const element = document.getElementById('invoice-preview');
-            // force the preview to stretch inside A5 with minimal margin
             const opt = {
-                margin:        [0.2, 0.2, 0.2, 0.2],  // tiny margin, almost full bleed
+                margin:        [0.2, 0.2, 0.2, 0.2],
                 filename:     'Softgreen_Invoice_A5.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
@@ -533,17 +509,14 @@
             html2pdf().set(opt).from(element).save();
         });
 
-        // initialise
+        // Force clear any cached values on load
+        document.querySelectorAll('.item-particulars, .item-qty, .item-rate').forEach(el => {
+            el.value = '';
+        });
+        
         attachInputEvents();
         updateNetAndChange();
         updatePreview();
-
-        // extra auto-update
-        document.addEventListener('input', function(e) {
-            if (e.target.closest('#itemsContainer') || e.target.closest('.cash-row') || e.target.closest('.form-grid')) {
-                // already handled
-            }
-        });
     })();
 </script>
 </body>
