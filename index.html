@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Softgreen · Invoice Generator</title>
+    <title>Box Town Mart · Invoice Generator</title>
     <!-- Font Awesome & html2pdf -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -295,6 +295,10 @@
             <div class="form-group full-width"><label><i class="fas fa-money-bill-wave"></i> Payment Mode</label>
                 <select id="paymentMode"><option value="Cash">Cash</option><option value="Card">Card</option><option value="Mobile">Mobile</option></select>
             </div>
+            <!-- New Cashier Name Field -->
+            <div class="form-group full-width"><label><i class="fas fa-user-tie"></i> Cashier Name</label>
+                <input id="cashierName" placeholder="Enter cashier name" value="Bikram Thapa">
+            </div>
         </div>
 
         <div style="margin: 18px 0 6px; font-weight: 600; color: #1f3d31;"><i class="fas fa-shopping-basket"></i> Items</div>
@@ -405,7 +409,7 @@
                 row.querySelector('.item-particulars').addEventListener('input', updatePreview);
             });
             document.getElementById('tenderCash').addEventListener('input', function() { updateNetAndChange(); updatePreview(); });
-            document.querySelectorAll('#billNo, #billDate, #miti, #custName, #custAddress, #panNo, #paymentMode').forEach(el => {
+            document.querySelectorAll('#billNo, #billDate, #miti, #custName, #custAddress, #panNo, #paymentMode, #cashierName').forEach(el => {
                 el.addEventListener('input', updatePreview);
             });
             document.getElementById('paymentMode').addEventListener('change', updatePreview);
@@ -420,6 +424,7 @@
             const address = document.getElementById('custAddress').value || ' ';
             const pan = document.getElementById('panNo').value || ' ';
             const payment = document.getElementById('paymentMode').value || 'Cash';
+            const cashier = document.getElementById('cashierName').value || 'Bikram Thapa';
             const tender = parseFloat(document.getElementById('tenderCash').value) || 0;
             const change = parseFloat(document.getElementById('changeCash').value) || 0;
 
@@ -438,9 +443,9 @@
             const preview = document.getElementById('invoice-preview');
             preview.innerHTML = `
                 <div style="margin-bottom:6px;">
-                    <div class="inv-store">SOFTGREEN TRADING PVT. LTD.</div>
-                    <div class="inv-address">Chapagaun-11, Godawarī</div>
-                    <div class="inv-vat">VAT No. : 600595539</div>
+                    <div class="inv-store">BOX TOWN MART PVT. LTD.</div>
+                    <div class="inv-address">Suryabinayak- 06, Bhaktapur</div>
+                    <div class="inv-vat">VAT No. : 610502835</div>
                     <div class="inv-title">ABBREVIATED TAX INVOICE</div>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; border-bottom:1px solid #d0dce3; padding-bottom:6px; margin-bottom:8px;">
@@ -469,8 +474,8 @@
                 </div>
                 <div class="inv-amount-words"><i class="fas fa-pen-fancy"></i> Rs. ${words} only</div>
                 <div class="inv-footer">
-                    <span>Counter : Chapagaun ( 2:59PM ) Retail Terminal 1</span>
-                    <span>Cashier : chapagaun</span>
+                    <span>Counter : Bhaktapur</span>
+                    <span>Cashier : ${cashier}</span>
                 </div>
                 <div style="text-align:center; font-size:0.75rem; color:#4b6a5a; margin-top:10px;">Thank you for visiting us.</div>
             `;
@@ -501,7 +506,7 @@
             const element = document.getElementById('invoice-preview');
             const opt = {
                 margin:        [0.2, 0.2, 0.2, 0.2],
-                filename:     'Softgreen_Invoice_A5.pdf',
+                filename:     'Box_Town_Mart_Invoice_A5.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
                 jsPDF:        { unit: 'in', format: 'a5', orientation: 'portrait' }
