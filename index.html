@@ -209,6 +209,13 @@
         }
         
         /* Responsive styles for invoice preview */
+        @media screen and (max-width: 1024px) {
+            #invoice-preview {
+                font-size: 12px;
+                padding: 18px 20px;
+            }
+        }
+        
         @media screen and (max-width: 768px) {
             #invoice-preview {
                 font-size: 11px;
@@ -217,8 +224,8 @@
             .inv-store { font-size: 1.3rem !important; }
             .inv-title { font-size: 1rem !important; }
             .inv-table { font-size: 0.8rem !important; }
-            .inv-cash { flex-direction: column; gap: 8px; }
-            .inv-footer { flex-direction: column; gap: 4px; }
+            .inv-cash { flex-direction: row; flex-wrap: wrap; gap: 12px; }
+            .inv-footer { flex-direction: row; flex-wrap: wrap; gap: 4px; }
         }
         
         @media screen and (max-width: 480px) {
@@ -231,9 +238,9 @@
             .inv-title { font-size: 0.9rem !important; }
             .inv-table { font-size: 0.7rem !important; }
             .inv-table th, .inv-table td { padding: 3px 2px !important; }
-            .inv-cash { font-size: 0.8rem; }
+            .inv-cash { font-size: 0.8rem; flex-direction: column; gap: 4px; }
             .inv-amount-words { font-size: 0.75rem; }
-            .inv-footer { font-size: 0.75rem; }
+            .inv-footer { font-size: 0.75rem; flex-direction: column; gap: 2px; }
         }
         
         .inv-store { font-weight: 700; font-size: 1.7rem; letter-spacing: -0.3px; color: #0f2b1f; }
@@ -267,7 +274,7 @@
             background: #ecf3ef;
             padding: 8px 14px;
             border-radius: 20px;
-            display: inline-flex;
+            display: flex;
             gap: 28px;
             margin: 12px 0 6px;
             font-weight: 500;
@@ -314,6 +321,10 @@
         }
         .download-btn i { font-size: 1.4rem; }
         .download-btn:hover { background: #0f3929; transform: scale(0.98); }
+        .download-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
         @media (max-width: 800px) {
             .form-grid { grid-template-columns: 1fr; }
             .item-row { flex-direction: column; }
@@ -569,47 +580,87 @@
 
         document.getElementById('downloadPdfBtn').addEventListener('click', function() {
             const element = document.getElementById('invoice-preview');
+            const downloadBtn = this;
+            const originalText = downloadBtn.innerHTML;
             
-            // Get the current font size and adjust for PDF
-            const currentFontSize = window.getComputedStyle(element).fontSize;
-            const fontSizeNum = parseFloat(currentFontSize);
+            // Show loading state
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+            downloadBtn.disabled = true;
+            
+            // Get the actual content dimensions
+            const contentWidth = element.scrollWidth;
+            const contentHeight = element.scrollHeight;
+            
+            // A5 dimensions in inches (5.83 x 8.27)
+            const a5Width = 5.83;
+            const a5Height = 8.27;
+            
+            // Calculate scaling to fit content in A5
+            // We need to ensure the content fits within the A5 dimensions with margins
+            const margin = 0.2; // inches
+            const maxWidth = a5Width - (margin * 2);
+            const maxHeight = a5Height - (margin * 2);
+            
+            // Get the current font size to adjust if needed
+            const fontSize = parseFloat(window.getComputedStyle(element).fontSize);
+            
+            // Calculate scale to fit content in A5
+            // First, determine if we need to scale down
+            const widthScale = maxWidth / (contentWidth / 96); // 96 is approximate DPI
+            const heightScale = maxHeight / (contentHeight / 96);
+            const scale = Math.min(1, Math.min(widthScale, heightScale) * 1.1); // 1.1 for some padding
+            
+            // Adjust font size for PDF if content is too large
+            let pdfFontSize = fontSize;
+            if (scale < 0.8) {
+                pdfFontSize = fontSize * scale;
+            }
+            
+            // Apply temporary font size for PDF generation
+            const originalFontSize = element.style.fontSize;
+            if (pdfFontSize < fontSize) {
+                element.style.fontSize = pdfFontSize + 'px';
+            }
             
             const opt = {
-                margin:        [0.15, 0.15, 0.15, 0.15],
-                filename:     'Box_Town_Mart_Invoice_A5.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
+                margin: [margin, margin, margin, margin],
+                filename: 'Box_Town_Mart_Invoice_A5.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
                     scale: 2, 
                     letterRendering: true, 
                     useCORS: true,
                     width: element.scrollWidth,
-                    height: element.scrollHeight
+                    height: element.scrollHeight,
+                    logging: false
                 },
-                jsPDF:        { 
+                jsPDF: { 
                     unit: 'in', 
                     format: 'a5', 
                     orientation: 'portrait',
                     compress: true
                 },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
-            
-            // Show loading state
-            const downloadBtn = document.getElementById('downloadPdfBtn');
-            const originalText = downloadBtn.innerHTML;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-            downloadBtn.disabled = true;
             
             html2pdf()
                 .set(opt)
                 .from(element)
                 .save()
                 .then(function() {
+                    // Restore original font size
+                    if (pdfFontSize < fontSize) {
+                        element.style.fontSize = originalFontSize || '';
+                    }
                     downloadBtn.innerHTML = originalText;
                     downloadBtn.disabled = false;
                 })
                 .catch(function(error) {
                     console.error('PDF generation error:', error);
+                    // Restore original font size
+                    if (pdfFontSize < fontSize) {
+                        element.style.fontSize = originalFontSize || '';
+                    }
                     downloadBtn.innerHTML = originalText;
                     downloadBtn.disabled = false;
                     alert('Error generating PDF. Please try again.');
