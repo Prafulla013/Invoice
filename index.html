@@ -195,7 +195,7 @@
             align-items: center;
             justify-content: center;
             min-height: 500px;
-            overflow: hidden;
+            overflow: auto;
         }
         #invoice-preview {
             font-family: 'Segoe UI', 'Roboto', sans-serif;
@@ -207,6 +207,35 @@
             padding: 20px 24px;
             box-sizing: border-box;
         }
+        
+        /* Responsive styles for invoice preview */
+        @media screen and (max-width: 768px) {
+            #invoice-preview {
+                font-size: 11px;
+                padding: 12px 16px;
+            }
+            .inv-store { font-size: 1.3rem !important; }
+            .inv-title { font-size: 1rem !important; }
+            .inv-table { font-size: 0.8rem !important; }
+            .inv-cash { flex-direction: column; gap: 8px; }
+            .inv-footer { flex-direction: column; gap: 4px; }
+        }
+        
+        @media screen and (max-width: 480px) {
+            #invoice-preview {
+                font-size: 10px;
+                padding: 10px 12px;
+            }
+            .inv-store { font-size: 1.1rem !important; }
+            .inv-address { font-size: 0.8rem !important; }
+            .inv-title { font-size: 0.9rem !important; }
+            .inv-table { font-size: 0.7rem !important; }
+            .inv-table th, .inv-table td { padding: 3px 2px !important; }
+            .inv-cash { font-size: 0.8rem; }
+            .inv-amount-words { font-size: 0.75rem; }
+            .inv-footer { font-size: 0.75rem; }
+        }
+        
         .inv-store { font-weight: 700; font-size: 1.7rem; letter-spacing: -0.3px; color: #0f2b1f; }
         .inv-address { color: #2c4a3b; font-size: 0.95rem; }
         .inv-vat { font-size: 0.85rem; color: #3b5b49; }
@@ -225,7 +254,13 @@
             margin: 12px 0 6px;
             font-size: 0.9rem;
         }
-        .inv-table th { text-align: left; border-bottom: 2px solid #1a3e2f; padding: 6px 4px; color: #17382a; font-weight: 600; }
+        .inv-table th { 
+            text-align: left; 
+            border-bottom: 2px solid #1a3e2f; 
+            padding: 6px 4px; 
+            color: #17382a; 
+            font-weight: 600; 
+        }
         .inv-table td { padding: 5px 4px; border-bottom: 1px solid #e2e9ef; }
         .inv-table .amount-col { text-align: right; }
         .inv-cash {
@@ -236,6 +271,7 @@
             gap: 28px;
             margin: 12px 0 6px;
             font-weight: 500;
+            flex-wrap: wrap;
         }
         .inv-footer {
             border-top: 1px solid #cbd8df;
@@ -245,6 +281,8 @@
             color: #2c4a3b;
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .inv-amount-words {
             font-weight: 500;
@@ -253,6 +291,8 @@
             border-radius: 40px;
             display: inline-block;
             font-size: 0.9rem;
+            word-break: break-word;
+            max-width: 100%;
         }
         .download-btn {
             background: #1f533c;
@@ -279,6 +319,20 @@
             .item-row { flex-direction: column; }
         }
         #invoice-preview * { box-sizing: border-box; }
+        
+        /* Print and PDF specific styles */
+        @media print {
+            body { background: white; padding: 0; }
+            .app-wrapper { display: block; }
+            .form-card { display: none; }
+            .preview-card { box-shadow: none; padding: 0; }
+            .pdf-container { border: none; min-height: auto; }
+            #invoice-preview { 
+                padding: 15px 20px;
+                font-size: 12px;
+            }
+            .download-btn { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -448,7 +502,7 @@
                     <div class="inv-vat">VAT No. : 610502835</div>
                     <div class="inv-title">ABBREVIATED TAX INVOICE</div>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; border-bottom:1px solid #d0dce3; padding-bottom:6px; margin-bottom:8px;">
+                <div style="display:flex; flex-wrap:wrap; justify-content:space-between; border-bottom:1px solid #d0dce3; padding-bottom:6px; margin-bottom:8px; gap:4px;">
                     <span><strong>Bill No:</strong> ${billNo}</span>
                     <span><strong>Date :</strong> ${date}</span>
                     <span><strong>Miti :</strong> ${miti}</span>
@@ -481,7 +535,6 @@
             `;
         }
 
-        // FIXED: This function now shows "only" just once
         function numberToWords(n) {
             if (n === 0) return 'Zero only';
             const num = Math.round(n * 100) / 100;
@@ -505,7 +558,6 @@
             }
             if (w > 0) res += convert(w) + ' ';
             
-            // Add "only" once at the end
             if (frac > 0) {
                 res += 'and ' + frac + ' Paisa only';
             } else {
@@ -517,14 +569,51 @@
 
         document.getElementById('downloadPdfBtn').addEventListener('click', function() {
             const element = document.getElementById('invoice-preview');
+            
+            // Get the current font size and adjust for PDF
+            const currentFontSize = window.getComputedStyle(element).fontSize;
+            const fontSizeNum = parseFloat(currentFontSize);
+            
             const opt = {
-                margin:        [0.2, 0.2, 0.2, 0.2],
+                margin:        [0.15, 0.15, 0.15, 0.15],
                 filename:     'Box_Town_Mart_Invoice_A5.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, letterRendering: true, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a5', orientation: 'portrait' }
+                html2canvas:  { 
+                    scale: 2, 
+                    letterRendering: true, 
+                    useCORS: true,
+                    width: element.scrollWidth,
+                    height: element.scrollHeight
+                },
+                jsPDF:        { 
+                    unit: 'in', 
+                    format: 'a5', 
+                    orientation: 'portrait',
+                    compress: true
+                },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
-            html2pdf().set(opt).from(element).save();
+            
+            // Show loading state
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+            downloadBtn.disabled = true;
+            
+            html2pdf()
+                .set(opt)
+                .from(element)
+                .save()
+                .then(function() {
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.disabled = false;
+                })
+                .catch(function(error) {
+                    console.error('PDF generation error:', error);
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.disabled = false;
+                    alert('Error generating PDF. Please try again.');
+                });
         });
 
         // Force clear any cached values on load
@@ -535,6 +624,15 @@
         attachInputEvents();
         updateNetAndChange();
         updatePreview();
+        
+        // Handle window resize for responsive preview
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                updatePreview();
+            }, 250);
+        });
     })();
 </script>
 </body>
