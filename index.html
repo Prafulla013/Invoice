@@ -352,8 +352,8 @@
         <h2><i class="fas fa-receipt"></i> Invoice details</h2>
         <div class="form-grid">
             <div class="form-group"><label><i class="fas fa-hashtag"></i> Bill No.</label><input id="billNo" value="SI51942-CHR-82/83"></div>
-            <div class="form-group"><label><i class="fas fa-calendar-day"></i> Date</label><input id="billDate" type="date" value="2026-02-07"></div>
-            <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Miti (Nepali)</label><input id="miti" value="2082-10-25" readonly style="background:#eef4f0;"></div>
+            <div class="form-group"><label><i class="fas fa-calendar-day"></i> Date</label><input id="billDate" type="text" value="07/02/2026"></div>
+            <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Miti</label><input id="miti" value="18/03/2083"></div>
             <div class="form-group"><label><i class="fas fa-user"></i> Name</label><input id="custName" placeholder="Customer name"></div>
             <div class="form-group"><label><i class="fas fa-map-pin"></i> Address</label><input id="custAddress" placeholder="Address"></div>
             <div class="form-group"><label><i class="fas fa-id-card"></i> PAN No</label><input id="panNo" placeholder="PAN"></div>
@@ -413,138 +413,6 @@
 
 <script>
     (function() {
-        // Corrected Nepali Date Conversion
-        // Reference: 2000-01-01 AD = 2056-09-17 BS
-        const nepaliMonthDays = [
-            [30, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30], // Non-leap year
-            [30, 32, 31, 32, 31, 30, 30, 30, 30, 30, 30, 30]  // Leap year
-        ];
-
-        const nepaliMonths = [
-            'Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin',
-            'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'
-        ];
-
-        function isNepaliLeapYear(year) {
-            // Nepali leap year calculation
-            const remainder = year % 4;
-            if (remainder === 0) return true;
-            if (remainder === 2) {
-                const yearMod100 = year % 100;
-                if (yearMod100 === 0) return true;
-                if (yearMod100 === 4) return true;
-                if (yearMod100 === 8) return true;
-            }
-            return false;
-        }
-
-        function getNepaliMonthDays(year, month) {
-            // month is 0-indexed (0 = Baishakh)
-            const leap = isNepaliLeapYear(year) ? 1 : 0;
-            return nepaliMonthDays[leap][month];
-        }
-
-        function englishToNepali(englishDate) {
-            if (!englishDate) return '2082-10-25';
-            
-            const parts = englishDate.split('-');
-            if (parts.length !== 3) return '2082-10-25';
-            
-            const year = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1;
-            const day = parseInt(parts[2]);
-            
-            // Reference date: 2000-01-01 AD = 2056-09-17 BS
-            const refEnglish = new Date(2000, 0, 1);
-            const targetEnglish = new Date(year, month, day);
-            
-            // Calculate days difference
-            const diffTime = targetEnglish.getTime() - refEnglish.getTime();
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            // Start from reference BS date
-            let bsYear = 2056;
-            let bsMonth = 8; // September (0-indexed, 8 = Kartik? Let me re-check)
-            let bsDay = 17;
-            
-            // Actually, let's adjust: 2000-01-01 AD = 2056-09-17 BS
-            // BS month 9 means Kartik? Let's use 0-indexed months properly
-            // BS months: 0=Baishakh, 1=Jestha, 2=Ashadh, 3=Shrawan, 4=Bhadra, 5=Ashwin, 
-            // 6=Kartik, 7=Mangsir, 8=Poush, 9=Magh, 10=Falgun, 11=Chaitra
-            // 2056-09-17 BS = 2056 Magh 17? No, let me recalculate.
-            // Actually, the correct mapping: 2000-01-01 AD = 2056-09-17 BS
-            // 09 means Poush? Let me be careful.
-            // In Nepali calendar: Baishakh(0), Jestha(1), Ashadh(2), Shrawan(3), Bhadra(4), 
-            // Ashwin(5), Kartik(6), Mangsir(7), Poush(8), Magh(9), Falgun(10), Chaitra(11)
-            // So 09 = Magh
-            
-            let bsYearRef = 2056;
-            let bsMonthRef = 8; // Poush (8)
-            let bsDayRef = 17;
-            
-            let remainingDays = diffDays;
-            
-            // Move forward or backward in BS
-            if (remainingDays >= 0) {
-                // Move forward
-                let currentYear = bsYearRef;
-                let currentMonth = bsMonthRef;
-                let currentDay = bsDayRef;
-                
-                while (remainingDays > 0) {
-                    const daysInMonth = getNepaliMonthDays(currentYear, currentMonth);
-                    if (remainingDays >= daysInMonth - currentDay + 1) {
-                        remainingDays -= (daysInMonth - currentDay + 1);
-                        currentDay = 1;
-                        currentMonth++;
-                        if (currentMonth >= 12) {
-                            currentMonth = 0;
-                            currentYear++;
-                        }
-                    } else {
-                        currentDay += remainingDays;
-                        remainingDays = 0;
-                    }
-                }
-                
-                return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-            } else {
-                // Move backward
-                let currentYear = bsYearRef;
-                let currentMonth = bsMonthRef;
-                let currentDay = bsDayRef;
-                remainingDays = Math.abs(remainingDays);
-                
-                while (remainingDays > 0) {
-                    if (remainingDays >= currentDay) {
-                        remainingDays -= currentDay;
-                        currentMonth--;
-                        if (currentMonth < 0) {
-                            currentMonth = 11;
-                            currentYear--;
-                        }
-                        currentDay = getNepaliMonthDays(currentYear, currentMonth);
-                    } else {
-                        currentDay -= remainingDays;
-                        remainingDays = 0;
-                    }
-                }
-                
-                return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-            }
-        }
-
-        function formatDisplayDate(dateStr) {
-            if (!dateStr) return '';
-            const parts = dateStr.split('-');
-            if (parts.length !== 3) return dateStr;
-            const year = parts[0];
-            const month = parts[1];
-            const day = parts[2];
-            return `${day}/${month}/${year}`;
-        }
-
-        // Main functions
         function recalcItemAmount(row) {
             const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
             const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
@@ -567,14 +435,6 @@
             const tender = parseFloat(document.getElementById('tenderCash').value) || 0;
             document.getElementById('changeCash').value = (tender - net).toFixed(2);
             return net;
-        }
-
-        function updateNepaliDate() {
-            const englishDate = document.getElementById('billDate').value;
-            if (englishDate) {
-                const nepaliDate = englishToNepali(englishDate);
-                document.getElementById('miti').value = nepaliDate;
-            }
         }
 
         window.addItem = function() {
@@ -618,19 +478,13 @@
                 el.addEventListener('input', updatePreview);
             });
             document.getElementById('paymentMode').addEventListener('change', updatePreview);
-            
-            // Date change handler
-            document.getElementById('billDate').addEventListener('change', function() {
-                updateNepaliDate();
-                updatePreview();
-            });
         }
 
         function updatePreview() {
             const net = updateNetAndChange();
             const billNo = document.getElementById('billNo').value || 'SI51942-CHR-82/83';
-            const date = document.getElementById('billDate').value || '2026-02-07';
-            const miti = document.getElementById('miti').value || '2082-10-25';
+            const date = document.getElementById('billDate').value || '07/02/2026';
+            const miti = document.getElementById('miti').value || '18/03/2083';
             const name = document.getElementById('custName').value || ' ';
             const address = document.getElementById('custAddress').value || ' ';
             const pan = document.getElementById('panNo').value || ' ';
@@ -638,9 +492,6 @@
             const cashier = document.getElementById('cashierName').value || 'Bikram Thapa';
             const tender = parseFloat(document.getElementById('tenderCash').value) || 0;
             const change = parseFloat(document.getElementById('changeCash').value) || 0;
-
-            const displayDate = date ? formatDisplayDate(date) : '07/02/2026';
-            const displayMiti = miti ? formatDisplayDate(miti) : '18/03/2083';
 
             let itemsHtml = '';
             let gross = 0;
@@ -664,8 +515,8 @@
                 </div>
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; border-bottom:1px solid #d0dce3; padding-bottom:6px; margin-bottom:8px; gap:4px;">
                     <span><strong>Bill No:</strong> ${billNo}</span>
-                    <span><strong>Date :</strong> ${displayDate}</span>
-                    <span><strong>Miti :</strong> ${displayMiti}</span>
+                    <span><strong>Date :</strong> ${date}</span>
+                    <span><strong>Miti :</strong> ${miti}</span>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px 20px; font-size:0.9rem; margin:4px 0 6px;">
                     <span><strong>Name :</strong> ${name}</span>
@@ -732,30 +583,40 @@
             const downloadBtn = this;
             const originalText = downloadBtn.innerHTML;
             
+            // Show loading state
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
             downloadBtn.disabled = true;
             
+            // Get the actual content dimensions
             const contentWidth = element.scrollWidth;
             const contentHeight = element.scrollHeight;
             
+            // A5 dimensions in inches (5.83 x 8.27)
             const a5Width = 5.83;
             const a5Height = 8.27;
             
-            const margin = 0.2;
+            // Calculate scaling to fit content in A5
+            // We need to ensure the content fits within the A5 dimensions with margins
+            const margin = 0.2; // inches
             const maxWidth = a5Width - (margin * 2);
             const maxHeight = a5Height - (margin * 2);
             
+            // Get the current font size to adjust if needed
             const fontSize = parseFloat(window.getComputedStyle(element).fontSize);
             
-            const widthScale = maxWidth / (contentWidth / 96);
+            // Calculate scale to fit content in A5
+            // First, determine if we need to scale down
+            const widthScale = maxWidth / (contentWidth / 96); // 96 is approximate DPI
             const heightScale = maxHeight / (contentHeight / 96);
-            const scale = Math.min(1, Math.min(widthScale, heightScale) * 1.1);
+            const scale = Math.min(1, Math.min(widthScale, heightScale) * 1.1); // 1.1 for some padding
             
+            // Adjust font size for PDF if content is too large
             let pdfFontSize = fontSize;
             if (scale < 0.8) {
                 pdfFontSize = fontSize * scale;
             }
             
+            // Apply temporary font size for PDF generation
             const originalFontSize = element.style.fontSize;
             if (pdfFontSize < fontSize) {
                 element.style.fontSize = pdfFontSize + 'px';
@@ -787,6 +648,7 @@
                 .from(element)
                 .save()
                 .then(function() {
+                    // Restore original font size
                     if (pdfFontSize < fontSize) {
                         element.style.fontSize = originalFontSize || '';
                     }
@@ -795,6 +657,7 @@
                 })
                 .catch(function(error) {
                     console.error('PDF generation error:', error);
+                    // Restore original font size
                     if (pdfFontSize < fontSize) {
                         element.style.fontSize = originalFontSize || '';
                     }
@@ -804,25 +667,16 @@
                 });
         });
 
-        // Initialize
+        // Force clear any cached values on load
         document.querySelectorAll('.item-particulars, .item-qty, .item-rate').forEach(el => {
             el.value = '';
         });
-        
-        // Set initial date
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        document.getElementById('billDate').value = `${year}-${month}-${day}`;
-        
-        // Set initial Nepali date
-        updateNepaliDate();
         
         attachInputEvents();
         updateNetAndChange();
         updatePreview();
         
+        // Handle window resize for responsive preview
         let resizeTimeout;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimeout);
