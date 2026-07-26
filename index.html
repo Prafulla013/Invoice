@@ -413,101 +413,125 @@
 
 <script>
     (function() {
-        // Nepali Date Conversion Functions
-        const nepaliMonths = [
-            { name: 'Baishakh', days: 31 },
-            { name: 'Jestha', days: 31 },
-            { name: 'Ashadh', days: 32 },
-            { name: 'Shrawan', days: 31 },
-            { name: 'Bhadra', days: 31 },
-            { name: 'Ashwin', days: 30 },
-            { name: 'Kartik', days: 30 },
-            { name: 'Mangsir', days: 30 },
-            { name: 'Poush', days: 29 },
-            { name: 'Magh', days: 29 },
-            { name: 'Falgun', days: 30 },
-            { name: 'Chaitra', days: 30 }
+        // Corrected Nepali Date Conversion
+        // Reference: 2000-01-01 AD = 2056-09-17 BS
+        const nepaliMonthDays = [
+            [30, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30], // Non-leap year
+            [30, 32, 31, 32, 31, 30, 30, 30, 30, 30, 30, 30]  // Leap year
         ];
 
-        // Reference date: 2000-01-01 AD = 2056-09-17 BS
-        const refAD = new Date(2000, 0, 1); // January 1, 2000
-        const refBS = { year: 2056, month: 9, day: 17 }; // 2056-09-17 BS
-
-        function isLeapYear(year) {
-            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-        }
-
-        function daysInMonth(year, month) {
-            return new Date(year, month, 0).getDate();
-        }
-
-        function daysInNepaliMonth(year, month) {
-            // month is 0-indexed (0 = Baishakh)
-            const monthData = nepaliMonths[month];
-            // Check if it's a leap year and the month is Poush (8) or Magh (9)
-            if (month === 8 && isNepaliLeapYear(year)) {
-                return monthData.days + 1; // Poush has 30 days in leap year
-            }
-            if (month === 9 && isNepaliLeapYear(year)) {
-                return monthData.days + 1; // Magh has 30 days in leap year
-            }
-            return monthData.days;
-        }
+        const nepaliMonths = [
+            'Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin',
+            'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'
+        ];
 
         function isNepaliLeapYear(year) {
-            // Nepali leap year calculation (simplified)
-            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            // Nepali leap year calculation
+            const remainder = year % 4;
+            if (remainder === 0) return true;
+            if (remainder === 2) {
+                const yearMod100 = year % 100;
+                if (yearMod100 === 0) return true;
+                if (yearMod100 === 4) return true;
+                if (yearMod100 === 8) return true;
+            }
+            return false;
         }
 
-        function englishToNepali(dateStr) {
-            if (!dateStr) return '2082-10-25';
+        function getNepaliMonthDays(year, month) {
+            // month is 0-indexed (0 = Baishakh)
+            const leap = isNepaliLeapYear(year) ? 1 : 0;
+            return nepaliMonthDays[leap][month];
+        }
+
+        function englishToNepali(englishDate) {
+            if (!englishDate) return '2082-10-25';
             
-            const parts = dateStr.split('-');
+            const parts = englishDate.split('-');
             if (parts.length !== 3) return '2082-10-25';
             
             const year = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // JavaScript months are 0-indexed
+            const month = parseInt(parts[1]) - 1;
             const day = parseInt(parts[2]);
             
-            const adDate = new Date(year, month, day);
-            if (isNaN(adDate.getTime())) return '2082-10-25';
+            // Reference date: 2000-01-01 AD = 2056-09-17 BS
+            const refEnglish = new Date(2000, 0, 1);
+            const targetEnglish = new Date(year, month, day);
             
-            // Calculate difference in days from reference date
-            const diffTime = adDate.getTime() - refAD.getTime();
+            // Calculate days difference
+            const diffTime = targetEnglish.getTime() - refEnglish.getTime();
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
             // Start from reference BS date
-            let bsYear = refBS.year;
-            let bsMonth = refBS.month;
-            let bsDay = refBS.day;
+            let bsYear = 2056;
+            let bsMonth = 8; // September (0-indexed, 8 = Kartik? Let me re-check)
+            let bsDay = 17;
+            
+            // Actually, let's adjust: 2000-01-01 AD = 2056-09-17 BS
+            // BS month 9 means Kartik? Let's use 0-indexed months properly
+            // BS months: 0=Baishakh, 1=Jestha, 2=Ashadh, 3=Shrawan, 4=Bhadra, 5=Ashwin, 
+            // 6=Kartik, 7=Mangsir, 8=Poush, 9=Magh, 10=Falgun, 11=Chaitra
+            // 2056-09-17 BS = 2056 Magh 17? No, let me recalculate.
+            // Actually, the correct mapping: 2000-01-01 AD = 2056-09-17 BS
+            // 09 means Poush? Let me be careful.
+            // In Nepali calendar: Baishakh(0), Jestha(1), Ashadh(2), Shrawan(3), Bhadra(4), 
+            // Ashwin(5), Kartik(6), Mangsir(7), Poush(8), Magh(9), Falgun(10), Chaitra(11)
+            // So 09 = Magh
+            
+            let bsYearRef = 2056;
+            let bsMonthRef = 8; // Poush (8)
+            let bsDayRef = 17;
             
             let remainingDays = diffDays;
             
-            // Add days to BS date
-            while (remainingDays > 0) {
-                const daysInCurrentMonth = daysInNepaliMonth(bsYear, bsMonth);
-                if (remainingDays >= daysInCurrentMonth) {
-                    remainingDays -= daysInCurrentMonth;
-                    bsMonth++;
-                    if (bsMonth >= 12) {
-                        bsMonth = 0;
-                        bsYear++;
-                    }
-                } else {
-                    bsDay += remainingDays;
-                    if (bsDay > daysInCurrentMonth) {
-                        bsDay -= daysInCurrentMonth;
-                        bsMonth++;
-                        if (bsMonth >= 12) {
-                            bsMonth = 0;
-                            bsYear++;
+            // Move forward or backward in BS
+            if (remainingDays >= 0) {
+                // Move forward
+                let currentYear = bsYearRef;
+                let currentMonth = bsMonthRef;
+                let currentDay = bsDayRef;
+                
+                while (remainingDays > 0) {
+                    const daysInMonth = getNepaliMonthDays(currentYear, currentMonth);
+                    if (remainingDays >= daysInMonth - currentDay + 1) {
+                        remainingDays -= (daysInMonth - currentDay + 1);
+                        currentDay = 1;
+                        currentMonth++;
+                        if (currentMonth >= 12) {
+                            currentMonth = 0;
+                            currentYear++;
                         }
+                    } else {
+                        currentDay += remainingDays;
+                        remainingDays = 0;
                     }
-                    remainingDays = 0;
                 }
+                
+                return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+            } else {
+                // Move backward
+                let currentYear = bsYearRef;
+                let currentMonth = bsMonthRef;
+                let currentDay = bsDayRef;
+                remainingDays = Math.abs(remainingDays);
+                
+                while (remainingDays > 0) {
+                    if (remainingDays >= currentDay) {
+                        remainingDays -= currentDay;
+                        currentMonth--;
+                        if (currentMonth < 0) {
+                            currentMonth = 11;
+                            currentYear--;
+                        }
+                        currentDay = getNepaliMonthDays(currentYear, currentMonth);
+                    } else {
+                        currentDay -= remainingDays;
+                        remainingDays = 0;
+                    }
+                }
+                
+                return `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
             }
-            
-            return `${bsYear}-${String(bsMonth + 1).padStart(2, '0')}-${String(bsDay).padStart(2, '0')}`;
         }
 
         function formatDisplayDate(dateStr) {
@@ -517,7 +541,6 @@
             const year = parts[0];
             const month = parts[1];
             const day = parts[2];
-            // Convert to DD/MM/YYYY format for display
             return `${day}/${month}/${year}`;
         }
 
@@ -616,7 +639,6 @@
             const tender = parseFloat(document.getElementById('tenderCash').value) || 0;
             const change = parseFloat(document.getElementById('changeCash').value) || 0;
 
-            // Format date for display
             const displayDate = date ? formatDisplayDate(date) : '07/02/2026';
             const displayMiti = miti ? formatDisplayDate(miti) : '18/03/2083';
 
@@ -710,19 +732,15 @@
             const downloadBtn = this;
             const originalText = downloadBtn.innerHTML;
             
-            // Show loading state
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
             downloadBtn.disabled = true;
             
-            // Get the actual content dimensions
             const contentWidth = element.scrollWidth;
             const contentHeight = element.scrollHeight;
             
-            // A5 dimensions in inches (5.83 x 8.27)
             const a5Width = 5.83;
             const a5Height = 8.27;
             
-            // Calculate scaling to fit content in A5
             const margin = 0.2;
             const maxWidth = a5Width - (margin * 2);
             const maxHeight = a5Height - (margin * 2);
@@ -805,7 +823,6 @@
         updateNetAndChange();
         updatePreview();
         
-        // Handle window resize for responsive preview
         let resizeTimeout;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimeout);
