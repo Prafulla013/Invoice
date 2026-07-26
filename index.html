@@ -472,7 +472,7 @@
                     <span><strong>Tender :</strong> ${tender.toFixed(2)}</span>
                     <span><strong>Change :</strong> ${change.toFixed(2)}</span>
                 </div>
-                <div class="inv-amount-words"><i class="fas fa-pen-fancy"></i> Rs. ${words} only</div>
+                <div class="inv-amount-words"><i class="fas fa-pen-fancy"></i> Rs. ${words}</div>
                 <div class="inv-footer">
                     <span>Counter : Bhaktapur</span>
                     <span>Cashier : ${cashier}</span>
@@ -481,24 +481,37 @@
             `;
         }
 
+        // FIXED: This function now shows "only" just once
         function numberToWords(n) {
-            if (n === 0) return 'Zero';
+            if (n === 0) return 'Zero only';
             const num = Math.round(n * 100) / 100;
             const whole = Math.floor(num);
             const frac = Math.round((num - whole) * 100);
             const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
             const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            
             function convert(h) {
                 if (h < 20) return units[h];
                 if (h < 100) return tens[Math.floor(h/10)] + (h%10 ? ' ' + units[h%10] : '');
                 return units[Math.floor(h/100)] + ' Hundred' + (h%100 ? ' ' + convert(h%100) : '');
             }
+            
             let res = '';
             let w = whole;
-            if (w >= 1000) { res += convert(Math.floor(w/1000)) + ' Thousand '; w %= 1000; }
+            
+            if (w >= 1000) { 
+                res += convert(Math.floor(w/1000)) + ' Thousand '; 
+                w %= 1000; 
+            }
             if (w > 0) res += convert(w) + ' ';
-            if (frac > 0) res += 'and ' + frac + ' Paisa';
-            else res += 'only';
+            
+            // Add "only" once at the end
+            if (frac > 0) {
+                res += 'and ' + frac + ' Paisa only';
+            } else {
+                res += 'only';
+            }
+            
             return res.trim();
         }
 
