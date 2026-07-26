@@ -352,8 +352,8 @@
         <h2><i class="fas fa-receipt"></i> Invoice details</h2>
         <div class="form-grid">
             <div class="form-group"><label><i class="fas fa-hashtag"></i> Bill No.</label><input id="billNo" value="SI51942-CHR-82/83"></div>
-            <div class="form-group"><label><i class="fas fa-calendar-day"></i> Date</label><input id="billDate" type="text" value="07/02/2026"></div>
-            <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Miti</label><input id="miti" value="18/03/2083"></div>
+            <div class="form-group"><label><i class="fas fa-calendar-day"></i> Date</label><input id="billDate" type="date" value="2026-02-07"></div>
+            <div class="form-group"><label><i class="fas fa-calendar-alt"></i> Miti (Nepali)</label><input id="miti" value="2082-10-25" readonly style="background:#eef4f0;"></div>
             <div class="form-group"><label><i class="fas fa-user"></i> Name</label><input id="custName" placeholder="Customer name"></div>
             <div class="form-group"><label><i class="fas fa-map-pin"></i> Address</label><input id="custAddress" placeholder="Address"></div>
             <div class="form-group"><label><i class="fas fa-id-card"></i> PAN No</label><input id="panNo" placeholder="PAN"></div>
@@ -413,6 +413,115 @@
 
 <script>
     (function() {
+        // Nepali Date Conversion Functions
+        const nepaliMonths = [
+            { name: 'Baishakh', days: 31 },
+            { name: 'Jestha', days: 31 },
+            { name: 'Ashadh', days: 32 },
+            { name: 'Shrawan', days: 31 },
+            { name: 'Bhadra', days: 31 },
+            { name: 'Ashwin', days: 30 },
+            { name: 'Kartik', days: 30 },
+            { name: 'Mangsir', days: 30 },
+            { name: 'Poush', days: 29 },
+            { name: 'Magh', days: 29 },
+            { name: 'Falgun', days: 30 },
+            { name: 'Chaitra', days: 30 }
+        ];
+
+        // Reference date: 2000-01-01 AD = 2056-09-17 BS
+        const refAD = new Date(2000, 0, 1); // January 1, 2000
+        const refBS = { year: 2056, month: 9, day: 17 }; // 2056-09-17 BS
+
+        function isLeapYear(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        function daysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function daysInNepaliMonth(year, month) {
+            // month is 0-indexed (0 = Baishakh)
+            const monthData = nepaliMonths[month];
+            // Check if it's a leap year and the month is Poush (8) or Magh (9)
+            if (month === 8 && isNepaliLeapYear(year)) {
+                return monthData.days + 1; // Poush has 30 days in leap year
+            }
+            if (month === 9 && isNepaliLeapYear(year)) {
+                return monthData.days + 1; // Magh has 30 days in leap year
+            }
+            return monthData.days;
+        }
+
+        function isNepaliLeapYear(year) {
+            // Nepali leap year calculation (simplified)
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        function englishToNepali(dateStr) {
+            if (!dateStr) return '2082-10-25';
+            
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return '2082-10-25';
+            
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // JavaScript months are 0-indexed
+            const day = parseInt(parts[2]);
+            
+            const adDate = new Date(year, month, day);
+            if (isNaN(adDate.getTime())) return '2082-10-25';
+            
+            // Calculate difference in days from reference date
+            const diffTime = adDate.getTime() - refAD.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Start from reference BS date
+            let bsYear = refBS.year;
+            let bsMonth = refBS.month;
+            let bsDay = refBS.day;
+            
+            let remainingDays = diffDays;
+            
+            // Add days to BS date
+            while (remainingDays > 0) {
+                const daysInCurrentMonth = daysInNepaliMonth(bsYear, bsMonth);
+                if (remainingDays >= daysInCurrentMonth) {
+                    remainingDays -= daysInCurrentMonth;
+                    bsMonth++;
+                    if (bsMonth >= 12) {
+                        bsMonth = 0;
+                        bsYear++;
+                    }
+                } else {
+                    bsDay += remainingDays;
+                    if (bsDay > daysInCurrentMonth) {
+                        bsDay -= daysInCurrentMonth;
+                        bsMonth++;
+                        if (bsMonth >= 12) {
+                            bsMonth = 0;
+                            bsYear++;
+                        }
+                    }
+                    remainingDays = 0;
+                }
+            }
+            
+            return `${bsYear}-${String(bsMonth + 1).padStart(2, '0')}-${String(bsDay).padStart(2, '0')}`;
+        }
+
+        function formatDisplayDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            const year = parts[0];
+            const month = parts[1];
+            const day = parts[2];
+            // Convert to DD/MM/YYYY format for display
+            return `${day}/${month}/${year}`;
+        }
+
+        // Main functions
         function recalcItemAmount(row) {
             const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
             const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
@@ -435,6 +544,14 @@
             const tender = parseFloat(document.getElementById('tenderCash').value) || 0;
             document.getElementById('changeCash').value = (tender - net).toFixed(2);
             return net;
+        }
+
+        function updateNepaliDate() {
+            const englishDate = document.getElementById('billDate').value;
+            if (englishDate) {
+                const nepaliDate = englishToNepali(englishDate);
+                document.getElementById('miti').value = nepaliDate;
+            }
         }
 
         window.addItem = function() {
@@ -478,13 +595,19 @@
                 el.addEventListener('input', updatePreview);
             });
             document.getElementById('paymentMode').addEventListener('change', updatePreview);
+            
+            // Date change handler
+            document.getElementById('billDate').addEventListener('change', function() {
+                updateNepaliDate();
+                updatePreview();
+            });
         }
 
         function updatePreview() {
             const net = updateNetAndChange();
             const billNo = document.getElementById('billNo').value || 'SI51942-CHR-82/83';
-            const date = document.getElementById('billDate').value || '07/02/2026';
-            const miti = document.getElementById('miti').value || '18/03/2083';
+            const date = document.getElementById('billDate').value || '2026-02-07';
+            const miti = document.getElementById('miti').value || '2082-10-25';
             const name = document.getElementById('custName').value || ' ';
             const address = document.getElementById('custAddress').value || ' ';
             const pan = document.getElementById('panNo').value || ' ';
@@ -492,6 +615,10 @@
             const cashier = document.getElementById('cashierName').value || 'Bikram Thapa';
             const tender = parseFloat(document.getElementById('tenderCash').value) || 0;
             const change = parseFloat(document.getElementById('changeCash').value) || 0;
+
+            // Format date for display
+            const displayDate = date ? formatDisplayDate(date) : '07/02/2026';
+            const displayMiti = miti ? formatDisplayDate(miti) : '18/03/2083';
 
             let itemsHtml = '';
             let gross = 0;
@@ -515,8 +642,8 @@
                 </div>
                 <div style="display:flex; flex-wrap:wrap; justify-content:space-between; border-bottom:1px solid #d0dce3; padding-bottom:6px; margin-bottom:8px; gap:4px;">
                     <span><strong>Bill No:</strong> ${billNo}</span>
-                    <span><strong>Date :</strong> ${date}</span>
-                    <span><strong>Miti :</strong> ${miti}</span>
+                    <span><strong>Date :</strong> ${displayDate}</span>
+                    <span><strong>Miti :</strong> ${displayMiti}</span>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:8px 20px; font-size:0.9rem; margin:4px 0 6px;">
                     <span><strong>Name :</strong> ${name}</span>
@@ -596,27 +723,21 @@
             const a5Height = 8.27;
             
             // Calculate scaling to fit content in A5
-            // We need to ensure the content fits within the A5 dimensions with margins
-            const margin = 0.2; // inches
+            const margin = 0.2;
             const maxWidth = a5Width - (margin * 2);
             const maxHeight = a5Height - (margin * 2);
             
-            // Get the current font size to adjust if needed
             const fontSize = parseFloat(window.getComputedStyle(element).fontSize);
             
-            // Calculate scale to fit content in A5
-            // First, determine if we need to scale down
-            const widthScale = maxWidth / (contentWidth / 96); // 96 is approximate DPI
+            const widthScale = maxWidth / (contentWidth / 96);
             const heightScale = maxHeight / (contentHeight / 96);
-            const scale = Math.min(1, Math.min(widthScale, heightScale) * 1.1); // 1.1 for some padding
+            const scale = Math.min(1, Math.min(widthScale, heightScale) * 1.1);
             
-            // Adjust font size for PDF if content is too large
             let pdfFontSize = fontSize;
             if (scale < 0.8) {
                 pdfFontSize = fontSize * scale;
             }
             
-            // Apply temporary font size for PDF generation
             const originalFontSize = element.style.fontSize;
             if (pdfFontSize < fontSize) {
                 element.style.fontSize = pdfFontSize + 'px';
@@ -648,7 +769,6 @@
                 .from(element)
                 .save()
                 .then(function() {
-                    // Restore original font size
                     if (pdfFontSize < fontSize) {
                         element.style.fontSize = originalFontSize || '';
                     }
@@ -657,7 +777,6 @@
                 })
                 .catch(function(error) {
                     console.error('PDF generation error:', error);
-                    // Restore original font size
                     if (pdfFontSize < fontSize) {
                         element.style.fontSize = originalFontSize || '';
                     }
@@ -667,10 +786,20 @@
                 });
         });
 
-        // Force clear any cached values on load
+        // Initialize
         document.querySelectorAll('.item-particulars, .item-qty, .item-rate').forEach(el => {
             el.value = '';
         });
+        
+        // Set initial date
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        document.getElementById('billDate').value = `${year}-${month}-${day}`;
+        
+        // Set initial Nepali date
+        updateNepaliDate();
         
         attachInputEvents();
         updateNetAndChange();
